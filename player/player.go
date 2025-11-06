@@ -3,6 +3,7 @@ package player
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"main/camera"
 	"main/level"
@@ -25,6 +26,11 @@ type PlayerStruct struct {
 }
 
 func (player *PlayerStruct) Update(level level.LevelStruct) {
+	if player.Health <= 0 {
+		player.Pos.Y = 0
+		player.Vel.Y = 0
+	}
+
 	player.CameraRef.Pos = player.Pos
 
 	player.CameraRef.Camera.Target = rl.NewVector3(
@@ -101,7 +107,7 @@ func (player *PlayerStruct) NetworkPlayer(ServerName string) *http.Response {
 		return nil
 	}
 
-	player_bytes, err := json.Marshal(networking.NetworkedPlayer{Pos_X: player.Pos.X, Pos_Y: player.Pos.Y, Pos_Z: player.Pos.Z, Health: uint8(player.Health), ID: 0})
+	player_bytes, err := json.Marshal(networking.NetworkedPlayer{Pos_X: player.Pos.X, Pos_Y: player.Pos.Y, Pos_Z: player.Pos.Z, Health: player.Health, ID: 0})
 	if err != nil {
 		panic(err)
 	}
@@ -120,10 +126,32 @@ func (player *PlayerStruct) NetworkPlayer(ServerName string) *http.Response {
 
 	networking.PlayerId = get_player_id_temp.ID
 
+	// Damage Checks
+	go func() {
+		for true {
+			this_player := networking.NetworkedPlayer{Pos_X: player.Pos.X, Pos_Y: player.Pos.Y, Pos_Z: player.Pos.Z, Health: player.Health, ID: networking.PlayerId}
+			if err != nil {
+				panic(err)
+			}
+
+			for i, projectile := range networking.Projectiles.Projectiles {
+				if utils.Collision(rl.NewVector3(player.Pos.X, player.Pos.Y, player.Pos.Z), rl.NewVector3(1, 2, 1), rl.NewVector3(projectile.Pos_X, projectile.Pos_Y, projectile.Pos_Z), rl.NewVector3(1, 1, 1)) {
+					damage_bytes, err := json.Marshal(networking.PlayerAndProjectileNetworked{Player: this_player, Projectile: projectile})
+					if err != nil {
+						panic(err)
+					}
+					http.Post(ServerName+"/DamagePlayer", "application/json", bytes.NewBuffer(damage_bytes))
+					utils.RemoveArrayElement(i, &networking.Projectiles.Projectiles)
+					break
+				}
+			}
+		}
+	}()
+
 	for true {
 		time.Sleep(time.Second / 15)
 
-		this_player := networking.NetworkedPlayer{Pos_X: player.Pos.X, Pos_Y: player.Pos.Y, Pos_Z: player.Pos.Z, ID: networking.PlayerId}
+		this_player := networking.NetworkedPlayer{Pos_X: player.Pos.X, Pos_Y: player.Pos.Y, Pos_Z: player.Pos.Z, Health: player.Health, ID: networking.PlayerId}
 		this_player_bytes, err := json.Marshal(this_player)
 		if err != nil {
 			panic(err)
@@ -147,6 +175,8 @@ func (player *PlayerStruct) NetworkPlayer(ServerName string) *http.Response {
 		json.Unmarshal(player_health_bytes, &player_health)
 
 		player.Health = int(player_health.Health)
+
+		fmt.Println(player.Health)
 	}
 
 	return resp
@@ -157,6 +187,7 @@ func NewPlayer(pos rl.Vector3) (player PlayerStruct) {
 	player.Vel = rl.NewVector3(0, 0, 0)
 	player.CameraRef = &camera.Camera
 	player.Moves = &GregMoveset{}
+	player.Health = 100
 
 	return player
 }

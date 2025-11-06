@@ -15,7 +15,7 @@ type NetworkedPlayer struct {
 	Pos_X  float32
 	Pos_Y  float32
 	Pos_Z  float32
-	Health uint8
+	Health int
 	ID     uint8
 }
 
@@ -85,16 +85,32 @@ func OtherPlayerNetworking() {
 		_, exists := OtherPlayersInterpelated[player.ID]
 
 		if !exists {
-			OtherPlayersInterpelated[player.ID] = &player
+			OtherPlayersInterpelated[player.ID] = &*&player
 		}
 
 		if math.Abs(float64(player.Pos_X-OtherPlayersInterpelated[player.ID].Pos_X)) > 10 {
-			OtherPlayersInterpelated[player.ID] = &player
+			OtherPlayersInterpelated[player.ID] = &*&player
 		} else if math.Abs(float64(player.Pos_Y-OtherPlayersInterpelated[player.ID].Pos_Y)) > 10 {
-			OtherPlayersInterpelated[player.ID] = &player
+			OtherPlayersInterpelated[player.ID] = &*&player
 
 		} else if math.Abs(float64(player.Pos_Z-OtherPlayersInterpelated[player.ID].Pos_Z)) > 10 {
-			OtherPlayersInterpelated[player.ID] = &player
+			OtherPlayersInterpelated[player.ID] = &*&player
+		}
+	}
+
+	for i := range OtherPlayersInterpelated {
+		other_player := OtherPlayersInterpelated[i]
+		safe := false
+		for i := range OtherPlayers.Players {
+			other_players := OtherPlayers.Players[i]
+			if other_player.ID == other_players.ID {
+				safe = true
+			}
+		}
+
+		if !safe {
+			OtherPlayersInterpelated[i] = nil
+			break
 		}
 	}
 }

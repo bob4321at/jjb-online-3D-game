@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"main/camera"
-	"main/utils"
 	"net/http"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -19,7 +18,7 @@ type NetworkedProjectile struct {
 	Vel_Y      float32
 	Vel_Z      float32
 	Speed      float32
-	Damage     uint8
+	Damage     int
 	Name       string
 	ServerTime uint64
 }
@@ -69,18 +68,6 @@ func UpdateProjectiles() {
 		projectile.Pos_X += projectile.Vel_X * rl.GetFrameTime() * 60
 		projectile.Pos_Y += projectile.Vel_Y * rl.GetFrameTime() * 60
 		projectile.Pos_Z += projectile.Vel_Z * rl.GetFrameTime() * 60
-	}
-
-	for _, player := range OtherPlayers.Players {
-		for _, projectile := range Projectiles.Projectiles {
-			if utils.Collision(rl.NewVector3(player.Pos_X, player.Pos_Y, player.Pos_Z), rl.NewVector3(1, 2, 1), rl.NewVector3(projectile.Pos_X, projectile.Pos_Y, projectile.Pos_Z), rl.NewVector3(1, 1, 1)) {
-				damage_bytes, err := json.Marshal(PlayerAndProjectileNetworked{player, projectile})
-				if err != nil {
-					panic(err)
-				}
-				http.Post(ServerName+"/DamagePlayer", "application/json", bytes.NewBuffer(damage_bytes))
-			}
-		}
 	}
 }
 

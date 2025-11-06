@@ -19,9 +19,9 @@ func InitBlockRendering() {
 
 	BlockTextures = map[uint8]rl.Texture2D{
 		0: rl.LoadTexture("./art/Tiles/Grass.png"),
-		1: rl.LoadTexture("./art/Tiles/Grass.png"),
-		2: rl.LoadTexture("./art/Tiles/Grass.png"),
-		3: rl.LoadTexture("./art/Tiles/Grass.png"),
+		1: rl.LoadTexture("./art/Tiles/TestTile.png"),
+		2: rl.LoadTexture("./art/Tiles/Brick.png"),
+		3: rl.LoadTexture("./art/Tiles/Asphalt.png"),
 		4: rl.LoadTexture("./art/Tiles/Grass.png"),
 		5: rl.LoadTexture("./art/Tiles/Grass.png"),
 	}
@@ -80,6 +80,16 @@ func (level *LevelStruct) Edit() {
 	}
 
 	if level.Selected_Block != nil {
+		if rl.IsKeyPressed(rl.KeyOne) {
+			level.Selected_Block.Color = 0
+		} else if rl.IsKeyPressed(rl.KeyTwo) {
+			level.Selected_Block.Color = 1
+		} else if rl.IsKeyPressed(rl.KeyThree) {
+			level.Selected_Block.Color = 2
+		} else if rl.IsKeyPressed(rl.KeyFour) {
+			level.Selected_Block.Color = 3
+		}
+
 		if rl.IsKeyDown(rl.KeyI) && !rl.IsKeyDown(rl.KeyLeftShift) {
 			level.Selected_Block.Size.X += 1 * rl.GetFrameTime()
 		} else if rl.IsKeyDown(rl.KeyI) && rl.IsKeyDown(rl.KeyLeftShift) {
@@ -97,19 +107,19 @@ func (level *LevelStruct) Edit() {
 		}
 
 		if rl.IsKeyDown(rl.KeyJ) && !rl.IsKeyDown(rl.KeyLeftShift) {
-			level.Selected_Block.Pos.X += 1 * rl.GetFrameTime()
+			level.Selected_Block.Pos.X += 2 * rl.GetFrameTime()
 		} else if rl.IsKeyDown(rl.KeyJ) && rl.IsKeyDown(rl.KeyLeftShift) {
-			level.Selected_Block.Pos.X -= 1 * rl.GetFrameTime()
+			level.Selected_Block.Pos.X -= 2 * rl.GetFrameTime()
 		}
 		if rl.IsKeyDown(rl.KeyK) && !rl.IsKeyDown(rl.KeyLeftShift) {
-			level.Selected_Block.Pos.Y += 1 * rl.GetFrameTime()
+			level.Selected_Block.Pos.Y += 2 * rl.GetFrameTime()
 		} else if rl.IsKeyDown(rl.KeyK) && rl.IsKeyDown(rl.KeyLeftShift) {
-			level.Selected_Block.Pos.Y -= 1 * rl.GetFrameTime()
+			level.Selected_Block.Pos.Y -= 2 * rl.GetFrameTime()
 		}
 		if rl.IsKeyDown(rl.KeyL) && !rl.IsKeyDown(rl.KeyLeftShift) && !rl.IsKeyDown(rl.KeyLeftControl) {
-			level.Selected_Block.Pos.Z += 1 * rl.GetFrameTime()
+			level.Selected_Block.Pos.Z += 2 * rl.GetFrameTime()
 		} else if rl.IsKeyDown(rl.KeyL) && rl.IsKeyDown(rl.KeyLeftShift) && !rl.IsKeyDown(rl.KeyLeftControl) {
-			level.Selected_Block.Pos.Z -= 1 * rl.GetFrameTime()
+			level.Selected_Block.Pos.Z -= 2 * rl.GetFrameTime()
 		}
 	}
 
