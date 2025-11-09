@@ -3,7 +3,6 @@ package player
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"main/camera"
 	"main/level"
@@ -126,6 +125,10 @@ func (player *PlayerStruct) NetworkPlayer(ServerName string) *http.Response {
 
 	networking.PlayerId = get_player_id_temp.ID
 
+	if networking.PlayerId == 1 {
+		networking.SendNewLevel(level.Level.Networkify())
+	}
+
 	// Damage Checks
 	go func() {
 		for true {
@@ -176,7 +179,24 @@ func (player *PlayerStruct) NetworkPlayer(ServerName string) *http.Response {
 
 		player.Health = int(player_health.Health)
 
-		fmt.Println(player.Health)
+		resp, err = http.Post(ServerName+"/GetPlayerMapState", "application/json", bytes.NewBuffer(this_player_bytes))
+		if err != nil {
+			panic(err)
+		}
+
+		player_map_state_bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		player_map_state := networking.NetworkedPlayer{}
+		if err := json.Unmarshal(player_map_state_bytes, &player_map_state); err != nil {
+			panic(err)
+		}
+
+		if player_map_state.Pos_X == -1 {
+			level.Level.GetNewLevel()
+		}
 	}
 
 	return resp

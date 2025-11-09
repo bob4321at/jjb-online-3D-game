@@ -2,8 +2,10 @@ package level
 
 import (
 	"encoding/json"
+	"fmt"
 	"image/color"
 	"main/camera"
+	"main/networking"
 	"main/utils"
 	"math"
 	"os"
@@ -43,6 +45,46 @@ type LevelStruct struct {
 	CameraRot      rl.Vector3
 	CameraRef      *camera.CameraStruct
 	Selected_Block *BlockStruct
+}
+
+func (level *LevelStruct) GetNewLevel() {
+	level.Blocks = nil
+
+	new_level := networking.GetNewLevel()
+
+	fmt.Println(new_level.Blocks)
+
+	for _, block := range new_level.Blocks {
+		new_block := BlockStruct{}
+		new_block.Pos.X = block.Pos_X
+		new_block.Pos.Y = block.Pos_Y
+		new_block.Pos.Z = block.Pos_Z
+		new_block.Size.X = block.Size_X
+		new_block.Size.Y = block.Size_Y
+		new_block.Size.Z = block.Size_Z
+		new_block.Color = block.Color
+
+		level.Blocks = append(level.Blocks, new_block)
+	}
+}
+
+func (level *LevelStruct) Networkify() networking.NetworkedLevel {
+	new_level := networking.NetworkedLevel{}
+
+	for _, block := range level.Blocks {
+		new_block := networking.NetworkedBlockStruct{}
+		new_block.Pos_X = block.Pos.X
+		new_block.Pos_Y = block.Pos.Y
+		new_block.Pos_Z = block.Pos.Z
+		new_block.Size_X = block.Size.X
+		new_block.Size_Y = block.Size.Y
+		new_block.Size_Z = block.Size.Z
+		new_block.Color = block.Color
+
+		new_level.Blocks = append(new_level.Blocks, new_block)
+	}
+
+	return new_level
 }
 
 func (level *LevelStruct) Edit() {
@@ -134,6 +176,10 @@ func (level *LevelStruct) Edit() {
 			panic(err)
 		}
 		f.Write(map_save)
+	}
+
+	if rl.IsKeyPressed(rl.KeyP) && rl.IsKeyDown(rl.KeyLeftControl) {
+		networking.SendNewLevel(level.Networkify())
 	}
 
 	if rl.IsKeyPressed(rl.KeyL) && rl.IsKeyDown(rl.KeyLeftControl) {
